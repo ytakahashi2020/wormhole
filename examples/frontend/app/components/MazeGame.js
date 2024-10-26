@@ -7,9 +7,11 @@ export default function MazeGame({ onGameEnd }) {
   const goalPosition = { x: gridSize - 1, y: gridSize - 1 }; // ゴールの位置
   const [gameMessage, setGameMessage] = useState("矢印キーで動かしてゴールを目指してください！");
   const [gameOver, setGameOver] = useState(false);
-  const [enemies, setEnemies] = useState(generateEnemies(20)); // 敵を3体生成
+  const [enemies, setEnemies] = useState(generateEnemies(2)); // 敵を3体生成
+  const [timeLeft, setTimeLeft] = useState(30); // 制限時間 (30秒)
 
   useEffect(() => {
+    // キーイベントの設定
     const handleKeyDown = (e) => {
       if (gameOver) return;
 
@@ -56,10 +58,25 @@ export default function MazeGame({ onGameEnd }) {
     // 敵を動かすためのインターバルを設定
     const enemyMovementInterval = setInterval(moveEnemies, 1000);
 
+    // カウントダウンのインターバルを設定
+    const countdownInterval = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1) {
+          setGameMessage("時間切れ！ゲームオーバー！");
+          setGameOver(true);
+          onGameEnd(false); // 時間切れでゲームオーバー
+          clearInterval(countdownInterval);
+          return 0;
+        }
+        return prevTime - 1;
+      });
+    }, 1000);
+
     // クリーンアップ
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       clearInterval(enemyMovementInterval);
+      clearInterval(countdownInterval);
     };
   }, [gameOver, enemies]);
 
@@ -156,6 +173,7 @@ export default function MazeGame({ onGameEnd }) {
     <div style={{ textAlign: "center", marginTop: "20px" }}>
       <h2>迷路ゲーム</h2>
       <p>{gameMessage}</p>
+      <p>残り時間: {timeLeft} 秒</p> {/* 残り時間の表示 */}
       <table
         style={{
           margin: "0 auto",

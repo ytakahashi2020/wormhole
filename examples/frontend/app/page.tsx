@@ -11,6 +11,7 @@ export default function Home() {
   const [message, setMessage] = useState(""); // メッセージの状態
   const [remainder, setRemainder] = useState(null); // 余りの状態
   const [bonus, setBonus] = useState(null); // ボーナスの状態
+  const [gameBonus, setGameBonus] = useState(0); // ゲーム勝利ボーナス
   const [result, setResult] = useState(null); // 結果の状態
   const [resultMessage, setResultMessage] = useState(""); // 結果メッセージ
   const [showMaze, setShowMaze] = useState(false); // 迷路ゲームを表示するかどうか
@@ -39,7 +40,7 @@ export default function Home() {
     }
   };
 
-  const handleButtonClick = () => {
+  const handleButtonClick = async () => {
     console.log("amount", amount);
     setLoading(true);
     setOutput(""); // 前回の出力をクリア
@@ -47,10 +48,69 @@ export default function Home() {
     setRemainder(null); // 余りの状態をクリア
     setResult(null); // 結果の状態をクリア
     setResultMessage(""); // 結果メッセージをクリア
+    setGameBonus(0); // ゲームボーナスをリセット
 
     // 迷路ゲームを表示
     setShowMaze(true);
     setGameStarted(true); // ゲームを開始状態にする
+
+    // トランザクションの処理を非同期で実行
+    try {
+      const response = await fetch("/api/transfers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ amt: amount }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOutput(data.message);
+
+        // receipt が存在する場合、状態に設定
+        if (data.receipt) {
+          setReceipt(data.receipt);
+
+          // TxID の値を10進数に変換し、100で割った余りを計算
+          if (data.receipt.destinationTxs && data.receipt.destinationTxs.length > 0) {
+            const txIdHex = data.receipt.destinationTxs[0].txid;
+            const txIdBigInt = BigInt(txIdHex); // 16進数をBigIntに変換
+            const remainderValue = txIdBigInt % BigInt(100); // 100で割った余り
+            setRemainder(Number(remainderValue)); // 結果を数値として保存
+
+            // 結果を計算
+            calculateResult(Number(remainderValue), bonus, gameBonus);
+          }
+        }
+      } else {
+        const errorData = await response.json();
+        setOutput(`Error: ${errorData.error}`);
+      }
+    } catch (error) {
+      setOutput(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 結果を計算する関数
+  const calculateResult = (remainderValue, bonusValue, gameBonusValue) => {
+    const calculatedResult = remainderValue + (bonusValue || 0) + gameBonusValue;
+    setResult(calculatedResult);
+
+    // ゲーム終了後にトランザクション完了時にのみ結果メッセージを表示
+    if (!gameStarted) {
+      if (calculatedResult >= 100) {
+        setResultMessage("おめでとうございます、当選です");
+      } else {
+        setResultMessage("残念です");
+      }
+    }
+  };
+  const calculateResult1 = (remainderValue, bonusValue, gameBonusValue) => {
+    const calculatedResult = remainderValue + (bonusValue || 0) + gameBonusValue;
+    setResult(calculatedResult);
   };
 
   // 迷路ゲームが終了した際に呼び出されるコールバック
@@ -59,10 +119,14 @@ export default function Home() {
     setShowMaze(false);
     setGameStarted(false); // ゲーム終了後にリセット
     if (success) {
-      setResultMessage("おめでとうございます、ゲームに勝ちました！");
+      setGameBonus(5); // ゲームに勝利したらボーナスを5に設定
+      setResultMessage("おめでとうございます、ゲームに勝ちました！ゲーム勝利ボーナス：5");
+      calculateResult1(remainder, bonus, gameBonus);
     } else {
       setResultMessage("残念ながら、ゲームに失敗しました。");
     }
+    // ゲームが終了した後の結果計算を行うが、メッセージは表示しない
+    // calculateResult(remainder, bonus, success ? 5 : 0);
   };
 
   return (
@@ -91,15 +155,49 @@ export default function Home() {
         </div>
       )}
       {showMaze && <MazeGame onGameEnd={handleGameEnd} />} {/* 迷路ゲームが表示される */}
-      {resultMessage && (
-        <div style={styles.resultMessageContainer}>
-          <p style={styles.resultMessage}>{resultMessage}</p>
+      {remainder !== null && (
+        <div style={styles.resultContainer}>
+          <p style={styles.result}>TxIDの余りは: {remainder}</p>
+          <p style={styles.result}>ボーナスを加えた結果: {result}</p>
+        </div>
+      )}
+      {gameBonus > 0 && (
+        <div style={styles.resultContainer}>
+          <p style={styles.result}>ゲーム勝利ボーナス: {gameBonus}</p>
+        </div>
+      )}
+      {resultMessage &&
+        !gameStarted && ( // ゲームが終了した後のみ表示
+          <div style={styles.resultMessageContainer}>
+            <p style={styles.resultMessage}>{resultMessage}</p>
+          </div>
+        )}
+      {receipt && (
+        <div style={styles.receiptContainer}>
+          <h3 style={styles.subTitle}>Receipt Details:</h3>
+          <div style={styles.info}>
+            <strong>From:</strong> {receipt.from}
+          </div>
+          <div style={styles.info}>
+            <strong>To:</strong> {receipt.to}
+          </div>
+          <h4 style={styles.subTitle}>Origin Transactions:</h4>
+          {receipt.originTxs.map((tx, index) => (
+            <div key={index} style={styles.transaction}>
+              <strong>Chain:</strong> {tx.chain}, <strong>TxID:</strong> {tx.txid}
+            </div>
+          ))}
+          <h4 style={styles.subTitle}>Destination Transactions:</h4>
+          {receipt.destinationTxs.map((tx, index) => (
+            <div key={index} style={styles.transaction}>
+              <strong>Chain:</strong> {tx.chain}, <strong>TxID:</strong> {tx.txid}
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
 }
-
 // スタイリングのオブジェクト
 const styles = {
   container: {
@@ -165,6 +263,17 @@ const styles = {
     fontSize: "16px",
     color: "#333",
   },
+  resultContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: "4px",
+    padding: "10px",
+    marginBottom: "20px",
+    border: "1px solid #ddd",
+  },
+  result: {
+    fontSize: "16px",
+    color: "#333",
+  },
   resultMessageContainer: {
     backgroundColor: "#ffffff",
     borderRadius: "4px",
@@ -176,5 +285,29 @@ const styles = {
     fontSize: "16px",
     color: "#007BFF",
     fontWeight: "bold",
+  },
+  receiptContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: "8px",
+    padding: "15px",
+    border: "1px solid #ddd",
+    marginTop: "20px",
+  },
+  subTitle: {
+    fontSize: "18px",
+    fontWeight: "bold",
+    marginBottom: "10px",
+    borderBottom: "1px solid #ddd",
+    paddingBottom: "5px",
+  },
+  info: {
+    marginBottom: "10px",
+  },
+  transaction: {
+    padding: "8px",
+    backgroundColor: "#e9ecef",
+    borderRadius: "4px",
+    marginBottom: "10px",
+    fontSize: "14px",
   },
 };
