@@ -5,6 +5,7 @@ import { TokenTransfer, Wormhole, amount, isTokenId, wormhole } from "@wormhole-
 
 import evm from "@wormhole-foundation/sdk/evm";
 import solana from "@wormhole-foundation/sdk/solana";
+import { useConnection, useWallet, useAnchorWallet } from "@solana/wallet-adapter-react";
 // import type { SignerStuff } from "../../../../src/helpers/index.js";
 import { getSigner, waitLog, SignerStuff } from "./helpers";
 
@@ -12,6 +13,11 @@ export const maxDuration = 60;
 export async function POST(request) {
   try {
     // リクエストボディをJSONとしてパース
+    // const { connected } = useWallet();
+    // console.log("connected", connected);
+    // const wallet = useAnchorWallet();
+    // const { connection } = useConnection();
+    // console.log("address:", wallet.publicKey.toBase58());
     const body = await request.text();
     const { amt } = JSON.parse(body); // JSON にパース
     console.log("Amount received:", amt);
