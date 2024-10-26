@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import MazeGame from "./components/MazeGame"; // MazeGameコンポーネントをインポート
 
 export default function Home() {
+  const [isClient, setIsClient] = useState(false);
   const [amount, setAmount] = useState(""); // 数量の状態
   const [output, setOutput] = useState("");
   const [receipt, setReceipt] = useState(null);
@@ -11,11 +12,15 @@ export default function Home() {
   const [message, setMessage] = useState(""); // メッセージの状態
   const [remainder, setRemainder] = useState(null); // 余りの状態
   const [bonus, setBonus] = useState(null); // ボーナスの状態
-  const [gameBonus, setGameBonus] = useState(0); // ゲーム勝利ボーナス
   const [result, setResult] = useState(null); // 結果の状態
   const [resultMessage, setResultMessage] = useState(""); // 結果メッセージ
   const [showMaze, setShowMaze] = useState(false); // 迷路ゲームを表示するかどうか
   const [gameStarted, setGameStarted] = useState(false); // ゲームが開始されたかどうか
+
+  // クライアントサイドでのみ実行される部分のセットアップ
+  useEffect(() => {
+    setIsClient(true); // クライアントサイドであることを設定
+  }, []);
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
@@ -48,7 +53,6 @@ export default function Home() {
     setRemainder(null); // 余りの状態をクリア
     setResult(null); // 結果の状態をクリア
     setResultMessage(""); // 結果メッセージをクリア
-    setGameBonus(0); // ゲームボーナスをリセット
 
     // 迷路ゲームを表示
     setShowMaze(true);
@@ -81,10 +85,11 @@ export default function Home() {
 
             console.log("Number(remainderValue)", Number(remainderValue));
             console.log("bonus", bonus);
-            console.log("gameBonus", gameBonus);
 
-            // 結果を計算
-            calculateResult(Number(remainderValue), bonus, 5);
+            // ゲームの結果に応じてボーナスを加えて結果を計算
+            if (!gameStarted) {
+              calculateResult(Number(remainderValue), bonus, 5);
+            }
           }
         }
       } else {
@@ -99,8 +104,8 @@ export default function Home() {
   };
 
   // 結果を計算する関数
-  const calculateResult = (remainderValue, bonusValue, gameBonusValue) => {
-    const calculatedResult = remainderValue + (bonusValue || 0) + gameBonusValue;
+  const calculateResult = (remainderValue, bonusValue, gameWinBonus) => {
+    const calculatedResult = remainderValue + (bonusValue || 0) + gameWinBonus;
     setResult(calculatedResult);
 
     // トランザクション完了時のみ結果メッセージを表示
@@ -115,22 +120,29 @@ export default function Home() {
 
   // 迷路ゲームが終了した際に呼び出されるコールバック
   const handleGameEnd = (success) => {
-    setLoading(false);
-    setShowMaze(false);
-    setGameStarted(false); // ゲーム終了後にリセット
-    if (success) {
-      setGameBonus(5); // ゲームに勝利したらボーナスを5に設定
-      console.log("gameBonus", gameBonus);
-    } else {
-      setResultMessage("残念ながら、ゲームに失敗しました。");
-      // ゲーム終了後の再計算（ボーナスなし）
-      // calculateResult(remainder, bonus, 0);
-    }
+    setTimeout(() => {
+      setLoading(false);
+      setShowMaze(false);
+      setGameStarted(false); // ゲーム終了後にリセット
+
+      if (success) {
+        console.log("ゲームに勝ちました。ゲーム勝利ボーナス：5を加えます");
+        calculateResult(remainder, bonus, 5); // 勝利ボーナスを直接渡す
+      } else {
+        setResultMessage("残念ながら、ゲームに失敗しました。");
+        calculateResult(remainder, bonus, 0); // ボーナスなしで再計算
+      }
+    }, 0); // 次のレンダリングサイクルまで遅延させる
   };
+
+  // クライアントサイドでのみ表示する内容
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Token Transfer Dashboard</h1>
+      <h1 style={styles.title as React.CSSProperties}>Token Transfer Dashboard</h1>
       <div style={styles.inputContainer}>
         <label htmlFor="amount" style={styles.label}>
           Amount:
@@ -158,11 +170,6 @@ export default function Home() {
         <div style={styles.resultContainer}>
           <p style={styles.result}>TxIDの余りは: {remainder}</p>
           <p style={styles.result}>ボーナスを加えた結果: {result}</p>
-        </div>
-      )}
-      {gameBonus > 0 && (
-        <div style={styles.resultContainer}>
-          <p style={styles.result}>ゲーム勝利ボーナス: {gameBonus}</p>
         </div>
       )}
       {resultMessage &&
