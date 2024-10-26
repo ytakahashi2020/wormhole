@@ -122,7 +122,7 @@ export default function Home() {
   // 迷路ゲームが終了した際に呼び出されるコールバック
   const handleGameEnd = (success) => {
     setTimeout(() => {
-      setLoading(false);
+      // setLoading(false);
       setShowMaze(false);
       setGameStarted(false); // ゲーム終了後にリセット
 
@@ -164,6 +164,12 @@ export default function Home() {
       >
         {loading ? "Running..." : "Run Script"}
       </button>
+      {loading && (
+        <div>
+          <div className={styles.spinner}></div>
+          <p className={styles.loadingMessage}>現在実行をしています...</p>
+        </div>
+      )}
       <pre className={styles.output}>{output}</pre>
       {message && (
         <div className={styles.messageContainer}>
