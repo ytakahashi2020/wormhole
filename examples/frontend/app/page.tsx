@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import MazeGame from "./components/MazeGame"; // MazeGameコンポーネントをインポート
+import styles from "./styles/Home.module.css";
 
 export default function Home() {
   const [isClient, setIsClient] = useState(false);
@@ -141,10 +142,10 @@ export default function Home() {
   }
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title as React.CSSProperties}>Token Transfer Dashboard</h1>
-      <div style={styles.inputContainer}>
-        <label htmlFor="amount" style={styles.label}>
+    <div className={styles.container}>
+      <h1 className={styles.title}>Token Transfer Dashboard</h1>
+      <div className={styles.inputContainer}>
+        <label htmlFor="amount" className={styles.label}>
           Amount:
         </label>
         <input
@@ -152,50 +153,54 @@ export default function Home() {
           id="amount"
           value={amount}
           onChange={handleAmountChange}
-          style={styles.input}
+          className={styles.input}
           placeholder="Enter amount"
         />
       </div>
-      <button onClick={handleButtonClick} disabled={loading || gameStarted} style={styles.button}>
+      <button
+        onClick={handleButtonClick}
+        disabled={loading || gameStarted}
+        className={styles.button}
+      >
         {loading ? "Running..." : "Run Script"}
       </button>
-      <pre style={styles.output}>{output}</pre>
+      <pre className={styles.output}>{output}</pre>
       {message && (
-        <div style={styles.messageContainer}>
-          <p style={styles.message}>{message}</p>
+        <div className={styles.messageContainer}>
+          <p className={styles.message}>{message}</p>
         </div>
       )}
       {showMaze && <MazeGame onGameEnd={handleGameEnd} />} {/* 迷路ゲームが表示される */}
       {remainder !== null && (
-        <div style={styles.resultContainer}>
-          <p style={styles.result}>TxIDの余りは: {remainder}</p>
-          <p style={styles.result}>ボーナスを加えた結果: {result}</p>
+        <div className={styles.resultContainer}>
+          <p className={styles.result}>TxIDの余りは: {remainder}</p>
+          <p className={styles.result}>ボーナスを加えた結果: {result}</p>
         </div>
       )}
       {resultMessage &&
         !gameStarted && ( // ゲームが終了した後のみ表示
-          <div style={styles.resultMessageContainer}>
-            <p style={styles.resultMessage}>{resultMessage}</p>
+          <div className={styles.resultMessageContainer}>
+            <p className={styles.resultMessage}>{resultMessage}</p>
           </div>
         )}
       {receipt && (
-        <div style={styles.receiptContainer}>
-          <h3 style={styles.subTitle}>Receipt Details:</h3>
-          <div style={styles.info}>
+        <div className={styles.receiptContainer}>
+          <h3 className={styles.subTitle}>Receipt Details:</h3>
+          <div className={styles.info}>
             <strong>From:</strong> {receipt.from}
           </div>
-          <div style={styles.info}>
+          <div className={styles.info}>
             <strong>To:</strong> {receipt.to}
           </div>
-          <h4 style={styles.subTitle}>Origin Transactions:</h4>
+          <h4 className={styles.subTitle}>Origin Transactions:</h4>
           {receipt.originTxs.map((tx, index) => (
-            <div key={index} style={styles.transaction}>
+            <div key={index} className={styles.transaction}>
               <strong>Chain:</strong> {tx.chain}, <strong>TxID:</strong> {tx.txid}
             </div>
           ))}
-          <h4 style={styles.subTitle}>Destination Transactions:</h4>
+          <h4 className={styles.subTitle}>Destination Transactions:</h4>
           {receipt.destinationTxs.map((tx, index) => (
-            <div key={index} style={styles.transaction}>
+            <div key={index} className={styles.transaction}>
               <strong>Chain:</strong> {tx.chain}, <strong>TxID:</strong> {tx.txid}
             </div>
           ))}
@@ -205,116 +210,116 @@ export default function Home() {
   );
 }
 
-// スタイリングのオブジェクト
-const styles = {
-  container: {
-    maxWidth: "800px",
-    margin: "0 auto",
-    padding: "20px",
-    backgroundColor: "#f0f0f0",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    fontFamily: "'Arial', sans-serif",
-  },
-  title: {
-    fontSize: "24px",
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: "20px",
-  },
-  inputContainer: {
-    marginBottom: "20px",
-  },
-  label: {
-    display: "block",
-    marginBottom: "8px",
-    fontWeight: "bold",
-  },
-  input: {
-    width: "100%",
-    padding: "8px",
-    fontSize: "16px",
-    borderRadius: "4px",
-    border: "1px solid #ddd",
-  },
-  button: {
-    display: "block",
-    width: "100%",
-    padding: "10px",
-    backgroundColor: "#4CAF50",
-    color: "#fff",
-    border: "none",
-    borderRadius: "4px",
-    fontSize: "16px",
-    cursor: "pointer",
-    marginBottom: "20px",
-    transition: "background-color 0.3s",
-  },
-  output: {
-    backgroundColor: "#ffffff",
-    borderRadius: "4px",
-    padding: "10px",
-    fontSize: "14px",
-    border: "1px solid #ddd",
-    marginBottom: "20px",
-    whiteSpace: "pre-wrap",
-  },
-  messageContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: "4px",
-    padding: "10px",
-    marginBottom: "20px",
-    border: "1px solid #ddd",
-  },
-  message: {
-    fontSize: "16px",
-    color: "#333",
-  },
-  resultContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: "4px",
-    padding: "10px",
-    marginBottom: "20px",
-    border: "1px solid #ddd",
-  },
-  result: {
-    fontSize: "16px",
-    color: "#333",
-  },
-  resultMessageContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: "4px",
-    padding: "10px",
-    marginBottom: "20px",
-    border: "1px solid #ddd",
-  },
-  resultMessage: {
-    fontSize: "16px",
-    color: "#007BFF",
-    fontWeight: "bold",
-  },
-  receiptContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: "8px",
-    padding: "15px",
-    border: "1px solid #ddd",
-    marginTop: "20px",
-  },
-  subTitle: {
-    fontSize: "18px",
-    fontWeight: "bold",
-    marginBottom: "10px",
-    borderBottom: "1px solid #ddd",
-    paddingBottom: "5px",
-  },
-  info: {
-    marginBottom: "10px",
-  },
-  transaction: {
-    padding: "8px",
-    backgroundColor: "#e9ecef",
-    borderRadius: "4px",
-    marginBottom: "10px",
-    fontSize: "14px",
-  },
-};
+// // スタイリングのオブジェクト
+// const styles = {
+//   container: {
+//     maxWidth: "800px",
+//     margin: "0 auto",
+//     padding: "20px",
+//     backgroundColor: "#f0f0f0",
+//     borderRadius: "8px",
+//     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+//     fontFamily: "'Arial', sans-serif",
+//   },
+//   title: {
+//     fontSize: "24px",
+//     fontWeight: "bold",
+//     textAlign: "center",
+//     marginBottom: "20px",
+//   },
+//   inputContainer: {
+//     marginBottom: "20px",
+//   },
+//   label: {
+//     display: "block",
+//     marginBottom: "8px",
+//     fontWeight: "bold",
+//   },
+//   input: {
+//     width: "100%",
+//     padding: "8px",
+//     fontSize: "16px",
+//     borderRadius: "4px",
+//     border: "1px solid #ddd",
+//   },
+//   button: {
+//     display: "block",
+//     width: "100%",
+//     padding: "10px",
+//     backgroundColor: "#4CAF50",
+//     color: "#fff",
+//     border: "none",
+//     borderRadius: "4px",
+//     fontSize: "16px",
+//     cursor: "pointer",
+//     marginBottom: "20px",
+//     transition: "background-color 0.3s",
+//   },
+//   output: {
+//     backgroundColor: "#ffffff",
+//     borderRadius: "4px",
+//     padding: "10px",
+//     fontSize: "14px",
+//     border: "1px solid #ddd",
+//     marginBottom: "20px",
+//     whiteSpace: "pre-wrap",
+//   },
+//   messageContainer: {
+//     backgroundColor: "#ffffff",
+//     borderRadius: "4px",
+//     padding: "10px",
+//     marginBottom: "20px",
+//     border: "1px solid #ddd",
+//   },
+//   message: {
+//     fontSize: "16px",
+//     color: "#333",
+//   },
+//   resultContainer: {
+//     backgroundColor: "#ffffff",
+//     borderRadius: "4px",
+//     padding: "10px",
+//     marginBottom: "20px",
+//     border: "1px solid #ddd",
+//   },
+//   result: {
+//     fontSize: "16px",
+//     color: "#333",
+//   },
+//   resultMessageContainer: {
+//     backgroundColor: "#ffffff",
+//     borderRadius: "4px",
+//     padding: "10px",
+//     marginBottom: "20px",
+//     border: "1px solid #ddd",
+//   },
+//   resultMessage: {
+//     fontSize: "16px",
+//     color: "#007BFF",
+//     fontWeight: "bold",
+//   },
+//   receiptContainer: {
+//     backgroundColor: "#ffffff",
+//     borderRadius: "8px",
+//     padding: "15px",
+//     border: "1px solid #ddd",
+//     marginTop: "20px",
+//   },
+//   subTitle: {
+//     fontSize: "18px",
+//     fontWeight: "bold",
+//     marginBottom: "10px",
+//     borderBottom: "1px solid #ddd",
+//     paddingBottom: "5px",
+//   },
+//   info: {
+//     marginBottom: "10px",
+//   },
+//   transaction: {
+//     padding: "8px",
+//     backgroundColor: "#e9ecef",
+//     borderRadius: "4px",
+//     marginBottom: "10px",
+//     fontSize: "14px",
+//   },
+// };
