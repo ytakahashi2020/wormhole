@@ -1,6 +1,6 @@
 "use client"; // pages/index.js
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MazeGame from "./components/MazeGame"; // MazeGameコンポーネントをインポート
 
 export default function Home() {
@@ -79,8 +79,12 @@ export default function Home() {
             const remainderValue = txIdBigInt % BigInt(100); // 100で割った余り
             setRemainder(Number(remainderValue)); // 結果を数値として保存
 
+            console.log("Number(remainderValue)", Number(remainderValue));
+            console.log("bonus", bonus);
+            console.log("gameBonus", gameBonus);
+
             // 結果を計算
-            calculateResult(Number(remainderValue), bonus, gameBonus);
+            calculateResult(Number(remainderValue), bonus, 5);
           }
         }
       } else {
@@ -99,7 +103,7 @@ export default function Home() {
     const calculatedResult = remainderValue + (bonusValue || 0) + gameBonusValue;
     setResult(calculatedResult);
 
-    // ゲーム終了後にトランザクション完了時にのみ結果メッセージを表示
+    // トランザクション完了時のみ結果メッセージを表示
     if (!gameStarted) {
       if (calculatedResult >= 100) {
         setResultMessage("おめでとうございます、当選です");
@@ -107,10 +111,6 @@ export default function Home() {
         setResultMessage("残念です");
       }
     }
-  };
-  const calculateResult1 = (remainderValue, bonusValue, gameBonusValue) => {
-    const calculatedResult = remainderValue + (bonusValue || 0) + gameBonusValue;
-    setResult(calculatedResult);
   };
 
   // 迷路ゲームが終了した際に呼び出されるコールバック
@@ -120,13 +120,12 @@ export default function Home() {
     setGameStarted(false); // ゲーム終了後にリセット
     if (success) {
       setGameBonus(5); // ゲームに勝利したらボーナスを5に設定
-      setResultMessage("おめでとうございます、ゲームに勝ちました！ゲーム勝利ボーナス：5");
-      calculateResult1(remainder, bonus, gameBonus);
+      console.log("gameBonus", gameBonus);
     } else {
       setResultMessage("残念ながら、ゲームに失敗しました。");
+      // ゲーム終了後の再計算（ボーナスなし）
+      // calculateResult(remainder, bonus, 0);
     }
-    // ゲームが終了した後の結果計算を行うが、メッセージは表示しない
-    // calculateResult(remainder, bonus, success ? 5 : 0);
   };
 
   return (
@@ -198,6 +197,7 @@ export default function Home() {
     </div>
   );
 }
+
 // スタイリングのオブジェクト
 const styles = {
   container: {

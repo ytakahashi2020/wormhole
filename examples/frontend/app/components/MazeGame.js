@@ -7,7 +7,7 @@ export default function MazeGame({ onGameEnd }) {
   const goalPosition = { x: gridSize - 1, y: gridSize - 1 }; // ゴールの位置
   const [gameMessage, setGameMessage] = useState("矢印キーで動かしてゴールを目指してください！");
   const [gameOver, setGameOver] = useState(false);
-  const [enemies, setEnemies] = useState(generateEnemies(2)); // 敵を3体生成
+  const [enemies, setEnemies] = useState(generateEnemies(1)); // 敵を3体生成
   const [timeLeft, setTimeLeft] = useState(30); // 制限時間 (30秒)
 
   useEffect(() => {
