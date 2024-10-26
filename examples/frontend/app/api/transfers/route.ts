@@ -73,16 +73,31 @@ export async function POST(request) {
 
     const receipt = await waitLog(wh, xfer);
 
+    console.log("================");
     // Log out the results
-    console.log(receipt);
+    console.log("receipt", receipt);
 
-    const data = await request.json();
+    console.log("================");
 
-    // 受け取ったデータを確認（例: コンソールに出力）
-    console.log("Received data:", data);
+    // BigInt の値を文字列に変換し、receipt オブジェクトを簡素化
+    const simplifiedReceipt = {
+      from: receipt.from,
+      to: receipt.to,
+      state: receipt.state,
+      originTxs: receipt.originTxs.map((tx) => ({
+        chain: tx.chain,
+        txid: tx.txid,
+      })),
+      destinationTxs: receipt.destinationTxs.map((tx) => ({
+        chain: tx.chain,
+        txid: tx.txid,
+      })),
+    };
+
+    console.log("Simplified receipt:", simplifiedReceipt);
 
     // レスポンスとして受け取ったデータを返す
-    return new Response(JSON.stringify({ message: "Data received", data }), {
+    return new Response(JSON.stringify({ message: "Data received", receipt: simplifiedReceipt }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
