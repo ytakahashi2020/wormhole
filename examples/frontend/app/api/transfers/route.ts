@@ -6,8 +6,9 @@ import { TokenTransfer, Wormhole, amount, isTokenId, wormhole } from "@wormhole-
 import evm from "@wormhole-foundation/sdk/evm";
 import solana from "@wormhole-foundation/sdk/solana";
 // import type { SignerStuff } from "../../../../src/helpers/index.js";
-import { getSigner, waitLog } from "./helpers";
+import { getSigner, waitLog, SignerStuff } from "./helpers";
 
+export const maxDuration = 60;
 export async function POST(request) {
   try {
     // リクエストボディをJSONとしてパース
