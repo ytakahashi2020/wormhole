@@ -1,72 +1,99 @@
 "use client"; // pages/index.js
 
 import { useState } from "react";
+import MazeGame from "./components/MazeGame"; // MazeGameコンポーネントをインポート
 
 export default function Home() {
+  const [amount, setAmount] = useState(""); // 数量の状態
   const [output, setOutput] = useState("");
   const [receipt, setReceipt] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(""); // メッセージの状態
+  const [remainder, setRemainder] = useState(null); // 余りの状態
+  const [bonus, setBonus] = useState(null); // ボーナスの状態
+  const [result, setResult] = useState(null); // 結果の状態
+  const [resultMessage, setResultMessage] = useState(""); // 結果メッセージ
+  const [showMaze, setShowMaze] = useState(false); // 迷路ゲームを表示するかどうか
+  const [gameStarted, setGameStarted] = useState(false); // ゲームが開始されたかどうか
 
-  const handleButtonClick = async () => {
+  const handleAmountChange = (e) => {
+    const value = e.target.value;
+    setAmount(value);
+
+    // 数値に変換
+    const numericAmount = parseFloat(value);
+
+    if (!isNaN(numericAmount)) {
+      if (numericAmount < 0.3) {
+        setMessage(`当選確率は ${Math.floor(numericAmount * 100)} ％です。`);
+      } else {
+        setMessage("当選確率は30％です（上限が30％です）");
+      }
+
+      // ボーナスの計算（100倍し、上限30）
+      const calculatedBonus = Math.min(Math.floor(numericAmount * 100), 30);
+      setBonus(calculatedBonus);
+    } else {
+      setMessage("有効な数値を入力してください。");
+      setBonus(null);
+    }
+  };
+
+  const handleButtonClick = () => {
+    console.log("amount", amount);
     setLoading(true);
     setOutput(""); // 前回の出力をクリア
     setReceipt(null); // 前回の receipt をクリア
-    try {
-      const response = await fetch("/api/transfers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: "Yuki", message: "Hello, World!" }),
-      });
+    setRemainder(null); // 余りの状態をクリア
+    setResult(null); // 結果の状態をクリア
+    setResultMessage(""); // 結果メッセージをクリア
 
-      if (response.ok) {
-        const data = await response.json();
-        setOutput(data.message);
+    // 迷路ゲームを表示
+    setShowMaze(true);
+    setGameStarted(true); // ゲームを開始状態にする
+  };
 
-        // receipt が存在する場合、状態に設定
-        if (data.receipt) {
-          setReceipt(data.receipt);
-        }
-      } else {
-        const errorData = await response.json();
-        setOutput(`Error: ${errorData.error}`);
-      }
-    } catch (error) {
-      setOutput(`Error: ${error.message}`);
-    } finally {
-      setLoading(false);
+  // 迷路ゲームが終了した際に呼び出されるコールバック
+  const handleGameEnd = (success) => {
+    setLoading(false);
+    setShowMaze(false);
+    setGameStarted(false); // ゲーム終了後にリセット
+    if (success) {
+      setResultMessage("おめでとうございます、ゲームに勝ちました！");
+    } else {
+      setResultMessage("残念ながら、ゲームに失敗しました。");
     }
   };
 
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Token Transfer Dashboard</h1>
-      <button onClick={handleButtonClick} disabled={loading} style={styles.button}>
+      <div style={styles.inputContainer}>
+        <label htmlFor="amount" style={styles.label}>
+          Amount:
+        </label>
+        <input
+          type="text"
+          id="amount"
+          value={amount}
+          onChange={handleAmountChange}
+          style={styles.input}
+          placeholder="Enter amount"
+        />
+      </div>
+      <button onClick={handleButtonClick} disabled={loading || gameStarted} style={styles.button}>
         {loading ? "Running..." : "Run Script"}
       </button>
       <pre style={styles.output}>{output}</pre>
-      {receipt && (
-        <div style={styles.receiptContainer}>
-          <h3 style={styles.subTitle}>Receipt Details:</h3>
-          <div style={styles.info}>
-            <strong>From:</strong> {receipt.from}
-          </div>
-          <div style={styles.info}>
-            <strong>To:</strong> {receipt.to}
-          </div>
-          <h4 style={styles.subTitle}>Origin Transactions:</h4>
-          {receipt.originTxs.map((tx, index) => (
-            <div key={index} style={styles.transaction}>
-              <strong>Chain:</strong> {tx.chain}, <strong>TxID:</strong> {tx.txid}
-            </div>
-          ))}
-          <h4 style={styles.subTitle}>Destination Transactions:</h4>
-          {receipt.destinationTxs.map((tx, index) => (
-            <div key={index} style={styles.transaction}>
-              <strong>Chain:</strong> {tx.chain}, <strong>TxID:</strong> {tx.txid}
-            </div>
-          ))}
+      {message && (
+        <div style={styles.messageContainer}>
+          <p style={styles.message}>{message}</p>
+        </div>
+      )}
+      {showMaze && <MazeGame onGameEnd={handleGameEnd} />} {/* 迷路ゲームが表示される */}
+      {resultMessage && (
+        <div style={styles.resultMessageContainer}>
+          <p style={styles.resultMessage}>{resultMessage}</p>
         </div>
       )}
     </div>
@@ -90,6 +117,21 @@ const styles = {
     textAlign: "center",
     marginBottom: "20px",
   },
+  inputContainer: {
+    marginBottom: "20px",
+  },
+  label: {
+    display: "block",
+    marginBottom: "8px",
+    fontWeight: "bold",
+  },
+  input: {
+    width: "100%",
+    padding: "8px",
+    fontSize: "16px",
+    borderRadius: "4px",
+    border: "1px solid #ddd",
+  },
   button: {
     display: "block",
     width: "100%",
@@ -103,9 +145,6 @@ const styles = {
     marginBottom: "20px",
     transition: "background-color 0.3s",
   },
-  buttonHover: {
-    backgroundColor: "#45a049",
-  },
   output: {
     backgroundColor: "#ffffff",
     borderRadius: "4px",
@@ -115,28 +154,27 @@ const styles = {
     marginBottom: "20px",
     whiteSpace: "pre-wrap",
   },
-  receiptContainer: {
+  messageContainer: {
     backgroundColor: "#ffffff",
-    borderRadius: "8px",
-    padding: "15px",
-    border: "1px solid #ddd",
-    marginTop: "20px",
-  },
-  subTitle: {
-    fontSize: "18px",
-    fontWeight: "bold",
-    marginBottom: "10px",
-    borderBottom: "1px solid #ddd",
-    paddingBottom: "5px",
-  },
-  info: {
-    marginBottom: "10px",
-  },
-  transaction: {
-    padding: "8px",
-    backgroundColor: "#e9ecef",
     borderRadius: "4px",
-    marginBottom: "10px",
-    fontSize: "14px",
+    padding: "10px",
+    marginBottom: "20px",
+    border: "1px solid #ddd",
+  },
+  message: {
+    fontSize: "16px",
+    color: "#333",
+  },
+  resultMessageContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: "4px",
+    padding: "10px",
+    marginBottom: "20px",
+    border: "1px solid #ddd",
+  },
+  resultMessage: {
+    fontSize: "16px",
+    color: "#007BFF",
+    fontWeight: "bold",
   },
 };

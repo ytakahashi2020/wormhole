@@ -11,7 +11,10 @@ import { getSigner, waitLog } from "./helpers";
 export async function POST(request) {
   try {
     // リクエストボディをJSONとしてパース
-    console.log("ssss");
+    const body = await request.text();
+    const { amt } = JSON.parse(body); // JSON にパース
+    console.log("Amount received:", amt);
+
     // Init Wormhole object, passing config for which network
     // to use (e.g. Mainnet/Testnet) and what Platforms to support
     const wh = await wormhole("Testnet", [evm, solana]);
@@ -24,7 +27,7 @@ export async function POST(request) {
 
     console.log("token", token);
 
-    const amt = "0.01";
+    // const amt = "0.01";
 
     const automatic = false;
 
