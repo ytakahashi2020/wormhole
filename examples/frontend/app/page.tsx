@@ -32,16 +32,16 @@ export default function Home() {
 
     if (!isNaN(numericAmount)) {
       if (numericAmount < 0.3) {
-        setMessage(`当選確率は ${Math.floor(numericAmount * 100)} ％です。`);
+        setMessage(`Chance of winning： ${Math.floor(numericAmount * 100)}`);
       } else {
-        setMessage("当選確率は30％です（上限が30％です）");
+        setMessage("The probability of winning is 30% (the upper limit is 30%)");
       }
 
       // ボーナスの計算（100倍し、上限30）
       const calculatedBonus = Math.min(Math.floor(numericAmount * 100), 30);
       setBonus(calculatedBonus);
     } else {
-      setMessage("有効な数値を入力してください。");
+      setMessage("Please enter a valid number.");
       setBonus(null);
     }
   };
@@ -112,9 +112,9 @@ export default function Home() {
     // トランザクション完了時のみ結果メッセージを表示
     if (!gameStarted) {
       if (calculatedResult >= 100) {
-        setResultMessage("おめでとうございます、当選です");
+        setResultMessage("Congratulations, you've won!");
       } else {
-        setResultMessage("残念です");
+        setResultMessage("Too bad, it's a hassle.");
       }
     }
   };
@@ -127,10 +127,10 @@ export default function Home() {
       setGameStarted(false); // ゲーム終了後にリセット
 
       if (success) {
-        console.log("ゲームに勝ちました。ゲーム勝利ボーナス：5を加えます");
+        console.log("Game won. Game Win Bonus: Add 5");
         calculateResult(remainder, bonus, 5); // 勝利ボーナスを直接渡す
       } else {
-        setResultMessage("残念ながら、ゲームに失敗しました。");
+        setResultMessage("Unfortunately, the game failed.");
         calculateResult(remainder, bonus, 0); // ボーナスなしで再計算
       }
     }, 0); // 次のレンダリングサイクルまで遅延させる
@@ -143,7 +143,7 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Token Transfer Dashboard</h1>
+      <h1 className={styles.title}>Token Transfer Gambling Game</h1>
       <div className={styles.inputContainer}>
         <label htmlFor="amount" className={styles.label}>
           Amount:
@@ -167,7 +167,7 @@ export default function Home() {
       {loading && (
         <div>
           <div className={styles.spinner}></div>
-          <p className={styles.loadingMessage}>現在実行をしています...</p>
+          <p className={styles.loadingMessage}>We are currently running...</p>
         </div>
       )}
       <pre className={styles.output}>{output}</pre>
@@ -179,8 +179,8 @@ export default function Home() {
       {showMaze && <MazeGame onGameEnd={handleGameEnd} />} {/* 迷路ゲームが表示される */}
       {remainder !== null && (
         <div className={styles.resultContainer}>
-          <p className={styles.result}>TxIDの余りは: {remainder}</p>
-          <p className={styles.result}>ボーナスを加えた結果: {result}</p>
+          <p className={styles.result}>The remainder of TxID: {remainder}</p>
+          <p className={styles.result}>Result with added bonuses: {result}</p>
         </div>
       )}
       {resultMessage &&
